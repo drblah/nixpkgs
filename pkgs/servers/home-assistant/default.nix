@@ -95,16 +95,6 @@ let
         ];
       });
 
-      google-genai = super.google-genai.overridePythonAttrs rec {
-        version = "1.38.0";
-        src = fetchFromGitHub {
-          owner = "googleapis";
-          repo = "python-genai";
-          tag = "v${version}";
-          hash = "sha256-gJaLEpNKHl6n1MvQDIUW7ynsHYH2eEPGsYso5jSysNg=";
-        };
-      };
-
       gspread = super.gspread.overridePythonAttrs (oldAttrs: rec {
         version = "5.12.4";
         src = fetchFromGitHub {
@@ -206,16 +196,6 @@ let
         };
       });
 
-      pydexcom = super.pydexcom.overridePythonAttrs (oldAttrs: rec {
-        version = "0.2.3";
-        src = fetchFromGitHub {
-          owner = "gagebenne";
-          repo = "pydexcom";
-          tag = version;
-          hash = "sha256-ItDGnUUUTwCz4ZJtFVlMYjjoBPn2h8QZgLzgnV2T/Qk=";
-        };
-      });
-
       pyflume = super.pyflume.overridePythonAttrs (oldAttrs: rec {
         version = "0.6.5";
         src = fetchFromGitHub {
@@ -293,7 +273,7 @@ let
   extraBuildInputs = extraPackages python.pkgs;
 
   # Don't forget to run update-component-packages.py after updating
-  hassVersion = "2026.1.3";
+  hassVersion = "2026.2.0b3";
 
 in
 python.pkgs.buildPythonApplication rec {
@@ -314,13 +294,13 @@ python.pkgs.buildPythonApplication rec {
     owner = "home-assistant";
     repo = "core";
     tag = version;
-    hash = "sha256-zmS5OZaUFe45rbCil7sbVlhy0wwA+F9tBO10KvBM2PY=";
+    hash = "sha256-nSt9Shud7fQ0jiyyl9kuKp7TfLROoVrGrsbI9fDpwzc=";
   };
 
   # Secondary source is pypi sdist for translations
   sdist = fetchPypi {
     inherit pname version;
-    hash = "sha256-gs5YyR1MofSMV8TDeBGp9keIREcszZGcLvtnHOYR7uc=";
+    hash = "sha256-Q7FDNssDi+gb8s4HhS9PV89k0R6SKtRqJKSB8A3Wq+Q=";
   };
 
   build-system = with python.pkgs; [
