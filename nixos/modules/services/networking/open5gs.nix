@@ -15,6 +15,9 @@ let
 
   ausfDefaultConfig = import ./open5gs/default-ausf.nix;
   ausfConfig = settingsYaml.generate "ausf.yaml" cfg.ausf.settings;
+
+  bsfDefaultConfig = import ./open5gs/default-bsf.nix;
+  bsfConfig = settingsYaml.generate "bsf.yaml" cfg.bsf.settings;
 in
 {
   options.services.open5gs = with lib.types; {
@@ -74,9 +77,37 @@ in
       };
     };
 
+
+    bsf = lib.mkOption {
+      description = ''
+        Open5GS Binding Support Function
+      '';
+      default = { };
+      type = submodule {
+        options = {
+          enable = lib.mkEnableOption "Binding Support Function";
+
+          settings = lib.mkOption {
+            type = settingsYaml.type;
+            default = bsfDefaultConfig;
+            example = lib.literalExpression ''
+              logger = {
+                file = {
+                  path = "/var/log/open5gs/bsf.log";
+                };
+              };
+            '';
+            description = ''
+              Open5GS BSF config file...
+            '';
+          };
+        };
+      };
+    };
+
   };
 
-  config = lib.mkIf (cfg.amf.enable) (
+  config = lib.mkIf (cfg.amf.enable || cfg.ausf.enable || cfg.bsf.enable) (
     lib.mkMerge [
       (lib.mkIf cfg.amf.enable {
         environment.systemPackages = [ cfg.package ];
@@ -89,6 +120,13 @@ in
         environment.systemPackages = [ cfg.package ];
 
         environment.etc."open5gs/ausf.yaml".source = ausfConfig;
+
+      })
+
+      (lib.mkIf cfg.bsf.enable {
+        environment.systemPackages = [ cfg.package ];
+
+        environment.etc."open5gs/bsf.yaml".source = bsfConfig;
 
       })
     ]
