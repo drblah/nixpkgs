@@ -12,6 +12,9 @@ let
 
   amfDefaultConfig = import ./open5gs/default-amf.nix;
   amfConfig = settingsYaml.generate "amf.yaml" cfg.amf.settings;
+
+  ausfDefaultConfig = import ./open5gs/default-ausf.nix;
+  ausfConfig = settingsYaml.generate "ausf.yaml" cfg.ausf.settings;
 in
 {
   options.services.open5gs = with lib.types; {
@@ -43,6 +46,34 @@ in
         };
       };
     };
+
+    ausf = lib.mkOption {
+      description = ''
+        Open5GS Authentication Server Function
+      '';
+      default = { };
+      type = submodule {
+        options = {
+          enable = lib.mkEnableOption "Authentication Server Function";
+
+          settings = lib.mkOption {
+            type = settingsYaml.type;
+            default = ausfDefaultConfig;
+            example = lib.literalExpression ''
+              logger = {
+                file = {
+                  path = "/var/log/open5gs/ausf.log";
+                };
+              };
+            '';
+            description = ''
+              Open5GS AUSF config file...
+            '';
+          };
+        };
+      };
+    };
+
   };
 
   config = lib.mkIf (cfg.amf.enable) (
@@ -51,6 +82,13 @@ in
         environment.systemPackages = [ cfg.package ];
 
         environment.etc."open5gs/amf.yaml".source = amfConfig;
+
+      })
+
+      (lib.mkIf cfg.ausf.enable {
+        environment.systemPackages = [ cfg.package ];
+
+        environment.etc."open5gs/ausf.yaml".source = ausfConfig;
 
       })
     ]
