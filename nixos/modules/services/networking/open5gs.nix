@@ -24,6 +24,9 @@ let
 
   mmeDefaultConfig = import ./open5gs/default-mme.nix;
   mmeConfig = settingsYaml.generate "mme.yaml" cfg.mme.settings;
+
+  nrfDefaultConfig = import ./open5gs/default-nrf.nix;
+  nrfConfig = settingsYaml.generate "nrf.yaml" cfg.nrf.settings;
 in
 {
   options.services.open5gs = with lib.types; {
@@ -165,9 +168,36 @@ in
       };
     };
 
+    nrf = lib.mkOption {
+      description = ''
+        Open5GS Network Repository Function
+      '';
+      default = { };
+      type = submodule {
+        options = {
+          enable = lib.mkEnableOption "Network Repository Function";
+
+          settings = lib.mkOption {
+            type = settingsYaml.type;
+            default = nrfDefaultConfig;
+            example = lib.literalExpression ''
+              logger = {
+                file = {
+                  path = "/var/log/open5gs/nrf.log";
+                };
+              };
+            '';
+            description = ''
+              Open5GS NRF config file...
+            '';
+          };
+        };
+      };
+    };
+
   };
 
-  config = lib.mkIf (cfg.amf.enable || cfg.ausf.enable || cfg.bsf.enable || cfg.hss.enable || cfg.mme.enable) (
+  config = lib.mkIf (cfg.amf.enable || cfg.ausf.enable || cfg.bsf.enable || cfg.hss.enable || cfg.mme.enable || cfg.nrf.enable) (
     lib.mkMerge [
       (lib.mkIf cfg.amf.enable {
         environment.systemPackages = [ cfg.package ];
@@ -201,6 +231,13 @@ in
         environment.systemPackages = [ cfg.package ];
 
         environment.etc."open5gs/mme.yaml".source = mmeConfig;
+
+      })
+
+      (lib.mkIf cfg.nrf.enable {
+        environment.systemPackages = [ cfg.package ];
+
+        environment.etc."open5gs/nrf.yaml".source = nrfConfig;
 
       })
     ]
