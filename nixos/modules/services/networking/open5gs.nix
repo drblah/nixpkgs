@@ -18,6 +18,9 @@ let
 
   bsfDefaultConfig = import ./open5gs/default-bsf.nix;
   bsfConfig = settingsYaml.generate "bsf.yaml" cfg.bsf.settings;
+
+  hssDefaultConfig = import ./open5gs/default-hss.nix;
+  hssConfig = settingsYaml.generate "hss.yaml" cfg.hss.settings;
 in
 {
   options.services.open5gs = with lib.types; {
@@ -105,9 +108,36 @@ in
       };
     };
 
+    hss = lib.mkOption {
+      description = ''
+        Open5GS Home Subscriber Server
+      '';
+      default = { };
+      type = submodule {
+        options = {
+          enable = lib.mkEnableOption "Home Subscriber Server";
+
+          settings = lib.mkOption {
+            type = settingsYaml.type;
+            default = hssDefaultConfig;
+            example = lib.literalExpression ''
+              logger = {
+                file = {
+                  path = "/var/log/open5gs/hss.log";
+                };
+              };
+            '';
+            description = ''
+              Open5GS hss config file...
+            '';
+          };
+        };
+      };
+    };
+
   };
 
-  config = lib.mkIf (cfg.amf.enable || cfg.ausf.enable || cfg.bsf.enable) (
+  config = lib.mkIf (cfg.amf.enable || cfg.ausf.enable || cfg.bsf.enable || cfg.hss.enable) (
     lib.mkMerge [
       (lib.mkIf cfg.amf.enable {
         environment.systemPackages = [ cfg.package ];
@@ -127,6 +157,13 @@ in
         environment.systemPackages = [ cfg.package ];
 
         environment.etc."open5gs/bsf.yaml".source = bsfConfig;
+
+      })
+
+      (lib.mkIf cfg.hss.enable {
+        environment.systemPackages = [ cfg.package ];
+
+        environment.etc."open5gs/hss.yaml".source = hssConfig;
 
       })
     ]
