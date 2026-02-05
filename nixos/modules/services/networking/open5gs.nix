@@ -21,6 +21,9 @@ let
 
   hssDefaultConfig = import ./open5gs/default-hss.nix;
   hssConfig = settingsYaml.generate "hss.yaml" cfg.hss.settings;
+
+  mmeDefaultConfig = import ./open5gs/default-mme.nix;
+  mmeConfig = settingsYaml.generate "mme.yaml" cfg.mme.settings;
 in
 {
   options.services.open5gs = with lib.types; {
@@ -83,12 +86,12 @@ in
 
     bsf = lib.mkOption {
       description = ''
-        Open5GS Binding Support Function
+        Open5GS Mobility Management Entity
       '';
       default = { };
       type = submodule {
         options = {
-          enable = lib.mkEnableOption "Binding Support Function";
+          enable = lib.mkEnableOption "Mobility Management Entity";
 
           settings = lib.mkOption {
             type = settingsYaml.type;
@@ -135,9 +138,36 @@ in
       };
     };
 
+    mme = lib.mkOption {
+      description = ''
+        Open5GS Mobility Management Entity
+      '';
+      default = { };
+      type = submodule {
+        options = {
+          enable = lib.mkEnableOption "Mobility Management Entity";
+
+          settings = lib.mkOption {
+            type = settingsYaml.type;
+            default = mmeDefaultConfig;
+            example = lib.literalExpression ''
+              logger = {
+                file = {
+                  path = "/var/log/open5gs/mme.log";
+                };
+              };
+            '';
+            description = ''
+              Open5GS mme config file...
+            '';
+          };
+        };
+      };
+    };
+
   };
 
-  config = lib.mkIf (cfg.amf.enable || cfg.ausf.enable || cfg.bsf.enable || cfg.hss.enable) (
+  config = lib.mkIf (cfg.amf.enable || cfg.ausf.enable || cfg.bsf.enable || cfg.hss.enable || cfg.mme.enable) (
     lib.mkMerge [
       (lib.mkIf cfg.amf.enable {
         environment.systemPackages = [ cfg.package ];
@@ -164,6 +194,13 @@ in
         environment.systemPackages = [ cfg.package ];
 
         environment.etc."open5gs/hss.yaml".source = hssConfig;
+
+      })
+
+      (lib.mkIf cfg.mme.enable {
+        environment.systemPackages = [ cfg.package ];
+
+        environment.etc."open5gs/mme.yaml".source = mmeConfig;
 
       })
     ]

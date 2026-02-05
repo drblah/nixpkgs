@@ -1,0 +1,79 @@
+{
+  logger = {
+    file = {
+      path = "/var/log/open5gs/mme.log";
+    };
+  };
+
+  global = {
+    max = {
+      ue = 1024;
+    };
+  };
+
+  mme = {
+    freeDiameter = "/etc/freeDiameter/mme.conf";
+
+    s1ap = {
+      server = [
+        { address = "127.0.0.2"; }
+      ];
+    };
+
+    gtpc = {
+      server = [
+        { address = "127.0.0.2"; }
+      ];
+      client = {
+        sgwc = [
+          { address = "127.0.0.3"; }
+        ];
+        smf = [
+          { address = "127.0.0.4"; }
+        ];
+      };
+    };
+
+    metrics = {
+      server = [
+        {
+          address = "127.0.0.2";
+          port = 9090;
+        }
+      ];
+    };
+
+    gummei = [
+      {
+        plmn_id = {
+          mcc = 999;
+          mnc = 70;
+        };
+        mme_gid = 2;
+        mme_code = 1;
+      }
+    ];
+
+    tai = [
+      {
+        plmn_id = {
+          mcc = 999;
+          mnc = 70;
+        };
+        tac = 1;
+      }
+    ];
+
+    security = {
+      integrity_order = [ "EIA2" "EIA1" "EIA0" ];
+      ciphering_order = [ "EEA0" "EEA1" "EEA2" ];
+    };
+
+    network_name = {
+      full = "Open5GS";
+      short = "Next";
+    };
+
+    mme_name = "open5gs-mme0";
+  };
+}
